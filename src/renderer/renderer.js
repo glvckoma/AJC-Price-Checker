@@ -236,8 +236,8 @@ function displayDetails(sections) { // Expecting an array of sections now
             event.preventDefault(); // Prevent navigating to '#'
             window.ipcApi.openExternalLink(sourceUrl); // Use exposed API
         });
-        sourceP.appendChild(document.createTextNode('Source: ')); // Add text node before link
-        sourceP.appendChild(sourceLink);
+        sourceP.appendChild(document.createTextNode('Source: ')); // Add the text node first
+        sourceP.appendChild(sourceLink); // Then append the link
         detailsArea.appendChild(sourceP);
     }
 }
