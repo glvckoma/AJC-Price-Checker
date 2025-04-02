@@ -1,0 +1,45 @@
+{
+  "name": "price",
+  "version": "1.0.0",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:css": "npx postcss ./src/styles/input.css -o ./src/renderer/style.css --watch",
+    "build": "electron-builder",
+    "build:css-final": "npx postcss ./src/styles/input.css -o ./src/renderer/style.css",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.1",
+    "autoprefixer": "^10.4.21",
+    "electron": "^35.1.2",
+    "electron-builder": "^25.0.0",
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.1.1"
+  },
+  "build": {
+    "appId": "com.example.ajpricechecker",
+    "productName": "AJ Price Checker",
+    "files": [
+      "src/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

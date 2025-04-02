@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+    <title>AJ Item Price Checker</title>
+    <link rel="stylesheet" href="style.css"> <!-- Output CSS from Tailwind -->
+</head>
+<body class="bg-gray-100 p-4 font-sans dark"> <!-- Added dark class -->
+    <div class="container mx-auto max-w-3xl bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"> <!-- Dark background for container -->
+        <h1 class="text-2xl font-bold text-gray-700 dark:text-gray-200 mb-4">AJ Item Price Checker</h1> <!-- Dark text -->
+
+        <div class="search-bar flex mb-4">
+            <input type="text" id="searchInput" placeholder="Enter item name..." class="flex-grow p-2 border border-gray-300 dark:border-gray-600 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"> <!-- Dark input styles -->
+            <button id="searchButton" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-md transition duration-150 ease-in-out">Search</button> <!-- Dark button styles -->
+        </div>
+
+        <div id="statusBar" class="mb-4 p-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 italic rounded-md text-sm">Status: Ready</div> <!-- Dark status bar -->
+
+        <div class="results-container border border-gray-200 dark:border-gray-700 rounded-md p-4 mb-4 bg-gray-50 dark:bg-gray-800"> <!-- Dark results container -->
+            <h2 class="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">Search Results</h2>
+            <ul id="resultsList" class="list-none p-0 max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"> <!-- Dark results list -->
+                <!-- Results will be populated here -->
+                <!-- Example: <li class="p-2 border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-900 dark:text-gray-100">Result Item</li> -->
+            </ul>
+        </div>
+
+        <div class="details-container border border-gray-200 dark:border-gray-700 rounded-md p-4 bg-gray-50 dark:bg-gray-800"> <!-- Dark details container -->
+            <h2 class="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">Worth Details</h2>
+            <div id="detailsArea" class="mt-2 p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md min-h-[100px] text-sm overflow-x-auto text-gray-900 dark:text-gray-100"> <!-- Dark details area -->
+                <!-- Details (table or text) will be populated here -->
+                <!-- Table styling will be handled by Tailwind via JS or specific classes if needed -->
+            </div>
+        </div>
+    </div>
+
+    <script src="./renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json # Optional: Depends on project policy, keeping it out for now
+*.env
+dist/
+build/ # Exclude Electron build output, but keep our existing Python build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/ # Python distribution artifacts
+build/ # Python build artifacts (already covered but good to be explicit)
+*.egg
+*.venv/
+venv/
+env/
+.env
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
