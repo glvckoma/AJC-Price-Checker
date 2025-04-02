@@ -7,8 +7,8 @@
 *   **Memory Bank:** Updated to reflect current state.
 *   **Frontend:** Electron UI functional, styled with Tailwind CSS (dark mode default), uses IPC for data requests.
 *   **Backend:** Node.js scraping logic implemented in the main process using `axios`/`cheerio`, communicating via IPC. Python backend removed.
-*   **Build:** `electron-builder` configured for portable `.exe` output. Build requires admin privileges. Manual CSS generation workaround in place.
-*   **Documentation:** `README.md` created.
+ *   **Build:** `electron-builder` configured for portable `.exe` output. Build requires admin privileges. Manual CSS generation workaround in place.
+ *   **Documentation:** `README.md` created. Memory Bank updated for refactor and update check feature.
 
 ## What Works
 
@@ -19,8 +19,9 @@
 *   Search results are returned via IPC and displayed in the list.
 *   Clicking a result sends a request to the main process via IPC.
 *   Main process fetches and parses details/images using Node.js scraping logic, **including handling of multiple sections/tables**.
-*   Worth details (table or text) and item images are returned via IPC and displayed correctly, including alignment. **Images are clickable and open in a modal. Source URL is displayed as a clickable link.**
-*   Application can be packaged into a portable `.exe` using `npm run build` (run as admin). **Icon configuration updated to use `build/icon.ico` via `electron-builder.json`.**
+ *   Worth details (table or text) and item images are returned via IPC and displayed correctly, including alignment. **Images are clickable and open in a modal. Source URL is displayed as a clickable link.**
+ *   **Update Check:** Application checks GitHub releases on startup and notifies the user via a dialog if a newer version is available, offering a link to the releases page.
+ *   Application can be packaged into a portable `.exe` using `npm run build` (run as admin). **Icon configuration updated to use `build/icon.ico` via `electron-builder.json`.**
 
 ## What's Left to Build (High-Level)
 
@@ -31,5 +32,6 @@
 ## Known Issues / Challenges
 
 *   **Web Scraping Brittleness:** Still reliant on the wiki's HTML structure. Changes to the wiki may break the application.
-*   **Parsing Limitations:** May not correctly parse worth/images from all page layouts on the wiki.
-*   **Build Environment:** The inability to reliably run build tools via npm scripts necessitates manual CSS generation, making styling updates cumbersome. Build requires administrator privileges and potentially Developer Mode enabled on Windows. Icon display in File Explorer may require clearing the Windows icon cache.
+ *   **Parsing Limitations:** May not correctly parse worth/images from all page layouts on the wiki.
+ *   **Update Check Dependency:** The update check feature requires tagged releases to exist on the GitHub repository and relies on the GitHub API being accessible.
+ *   **Build Environment:** The inability to reliably run build tools via npm scripts necessitates manual CSS generation, making styling updates cumbersome. Build requires administrator privileges and potentially Developer Mode enabled on Windows. Icon display in File Explorer may require clearing the Windows icon cache.

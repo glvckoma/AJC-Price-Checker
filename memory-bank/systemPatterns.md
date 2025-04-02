@@ -6,19 +6,30 @@ The application now follows an **integrated Electron architecture**, where both 
 
 ```mermaid
 graph TD
-    A[Electron App] --> B(Main Process);
-    A --> C(Renderer Process - UI);
-    C -- IPC Request --> B;
-    B -- IPC Response --> C;
-    B -- HTTP Request (axios) --> D{{AJ Item Worth Wiki}};
+    subgraph Electron App
+        B(Main Process)
+        C(Renderer Process - UI)
+    end
+    A[User] -- Interacts --> C;
+    C -- IPC Request (Search/Details) --> B;
+    B -- IPC Response (Results/Details) --> C;
+    B -- HTTP Request (axios - Scraping) --> D{{AJ Item Worth Wiki}};
     D -- HTML Response --> B;
+    B -- HTTP Request (axios - Update Check) --> E{{GitHub API}};
+    E -- JSON Response --> B;
+    B -- Show Dialog (dialog.showMessageBox) --> A;
+    A -- Click Download --> B;
+    B -- Open External (shell.openExternal) --> F[Browser];
+
 ```
 
 *   **Electron App:** The single packaged application (`.exe`).
 *   **Main Process (`main.js`):** Runs Node.js. Handles window creation, application lifecycle, and contains the backend web scraping logic (using `axios` and `cheerio`). Performs network requests to the external wiki.
 *   **Renderer Process (`renderer.js`):** Runs the user interface (HTML/CSS/JS) within a Chromium window. Handles user input and displays results.
 *   **Inter-Process Communication (IPC):** The Renderer process sends requests (e.g., search term, page URL) to the Main process via Electron's IPC channels. The Main process performs the scraping and sends the results (or errors) back to the Renderer process via IPC.
-*   **External Service:** The Animal Jam Item Worth Wiki (`aj-item-worth.fandom.com`), the data source.
+ *   **External Services:**
+     *   The Animal Jam Item Worth Wiki (`aj-item-worth.fandom.com`), the primary data source for item worth.
+     *   GitHub API (`api.github.com`), used for checking for application updates via the `/releases/latest` endpoint.
 
 ## Key Patterns & Decisions
 
@@ -27,7 +38,8 @@ graph TD
 3.  **Asynchronous Operations (Main Process):** The main process uses `async/await` with `axios` for network requests and potentially for parsing with `cheerio` to avoid blocking the main thread while scraping.
 4.  **Web Scraping (Node.js):** Standard Node.js libraries (`axios`, `cheerio`) are used for fetching and parsing HTML from the target wiki. This pattern remains dependent on the wiki's structure.
 5.  **Single Process Deployment:** The entire application (UI and backend logic) is packaged into a single executable using `electron-builder`.
-6.  **Error Handling:** Errors (network, parsing) are handled within the main process scraping logic and communicated back to the renderer process via IPC for display in the UI.
+6.  **Update Check:** On application startup, the main process asynchronously checks the GitHub API for the latest release tag. It compares this with the current application version using `semver`. If a newer version exists, it prompts the user with a native dialog offering to open the GitHub releases page. Errors during the update check are logged silently.
+7.  **Error Handling:** Errors during wiki scraping (network, parsing) are handled within the main process logic and communicated back to the renderer process via IPC for display. Update check errors are handled silently in the main process.
 
 ## Comparison to Previous Architectures
 

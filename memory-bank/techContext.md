@@ -29,8 +29,9 @@ The application is being refactored into a single, integrated Electron applicati
 
 *   `electron`
 *   `electron-builder`
-*   `axios` (to be added)
-*   `cheerio` (to be added)
+*   `axios`
+*   `cheerio`
+*   `semver` (for update version comparison)
 *   `tailwindcss`, `@tailwindcss/postcss`, `postcss`, `postcss-cli`, `autoprefixer` (dev dependencies for styling)
 
 ## Development Environment
@@ -42,6 +43,7 @@ The application is being refactored into a single, integrated Electron applicati
 ## Constraints & Considerations
 
 *   The application relies heavily on the structure of the target wiki (`aj-item-worth.fandom.com`). Changes to the wiki will likely break the Node.js scraping logic.
-*   Robust error handling is needed for network requests and HTML parsing within the Node.js code.
-*   Asynchronous operations (fetching, parsing) must be handled correctly in the main process to avoid blocking the application.
+*   **Update Check:** The update notification feature relies on the GitHub API (`/repos/:owner/:repo/releases/latest`) and the presence of tagged releases in the repository. Network errors during the check are handled silently.
+*   Robust error handling is needed for network requests (wiki scraping, GitHub API) and HTML parsing within the Node.js code.
+*   Asynchronous operations (fetching, parsing, update check) must be handled correctly in the main process to avoid blocking the application.
 *   The manual CSS generation process is a workaround; resolving the underlying build tool execution issue would be ideal for easier maintenance.

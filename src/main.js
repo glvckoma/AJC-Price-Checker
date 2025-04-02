@@ -1,9 +1,16 @@
 // Electron main process
-const { app, BrowserWindow, ipcMain, shell } = require('electron'); // Added shell
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron'); // Added shell, dialog
 const path = require('path');
 const axios = require('axios'); // For HTTP requests
 const cheerio = require('cheerio'); // For HTML parsing
 const url = require('url'); // For joining URLs
+const semver = require('semver'); // For version comparison
+
+// --- GitHub Update Check Configuration ---
+const GITHUB_OWNER = 'glvckoma';
+const GITHUB_REPO = 'AJC-Price-Checker';
+const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
+const GITHUB_API_LATEST_RELEASE_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`;
 
 // --- Configuration ---
 const BASE_URL = "https://aj-item-worth.fandom.com";
@@ -235,6 +242,51 @@ function extractWorthDetails(htmlContent) {
     return sections; // Return the array of section objects
 }
 
+// --- Helper: Check for Updates ---
+async function checkForUpdates() {
+    console.log('Checking for updates...');
+    try {
+        const currentVersion = app.getVersion();
+        console.log(`Current version: ${currentVersion}`);
+
+        const response = await axios.get(GITHUB_API_LATEST_RELEASE_URL, {
+            headers: { 'Accept': 'application/vnd.github.v3+json' }, // Recommended by GitHub API docs
+            timeout: 15000 // Shorter timeout for update check
+        });
+
+        if (response.status === 200 && response.data && response.data.tag_name) {
+            const latestVersionTag = response.data.tag_name;
+            // Strip 'v' prefix if present for semver comparison
+            const latestVersion = latestVersionTag.startsWith('v') ? latestVersionTag.substring(1) : latestVersionTag;
+            console.log(`Latest version tag: ${latestVersionTag}, Parsed: ${latestVersion}`);
+
+            if (semver.valid(latestVersion) && semver.gt(latestVersion, currentVersion)) {
+                console.log(`New version available: ${latestVersion}`);
+                const { response: buttonIndex } = await dialog.showMessageBox({
+                    type: 'info',
+                    title: 'Update Available',
+                    message: `A new version (${latestVersion}) is available. You have ${currentVersion}.`,
+                    buttons: ['OK', 'Download'],
+                    defaultId: 1, // Default to 'Download'
+                    cancelId: 0 // 'OK' is cancel
+                });
+
+                if (buttonIndex === 1) { // User clicked 'Download'
+                    console.log('User clicked Download, opening releases page...');
+                    await shell.openExternal(GITHUB_RELEASES_URL);
+                }
+            } else {
+                console.log('Current version is up-to-date or latest version is invalid/not newer.');
+            }
+        } else {
+            console.log('Could not retrieve latest release information or tag_name missing.');
+        }
+    } catch (error) {
+        console.error('Error checking for updates:', error.message);
+        // Don't bother the user with an error dialog for update checks
+    }
+}
+
 
 // --- IPC Handlers ---
 async function handleSearchWiki(event, searchTerm) {
@@ -312,9 +364,10 @@ function setupIpcHandlers() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => { // Make the callback async
   setupIpcHandlers(); // Set up IPC listeners
   createWindow();
+  await checkForUpdates(); // Check for updates after window creation
 
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.

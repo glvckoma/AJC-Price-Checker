@@ -6,6 +6,10 @@ yarn-error.log*
 package-lock.json # Optional: Depends on project policy, keeping it out for now
 *.env
 dist/
+
+# Project Specific
+memory-bank/
+.clinerules
 build/ # Exclude Electron build output, but keep our existing Python build/
 
 # Python

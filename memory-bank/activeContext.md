@@ -16,13 +16,16 @@ Finalizing documentation and preparing for potential further enhancements after 
 *   **Image Modal:** Implemented clickable images in tables that open a larger view in a modal.
 *   **Source Link:** Fixed display of source URL link (including "Source: " text) and implemented opening via IPC/shell.
 *   **Icon Fixes:** Attempted various fixes for `.exe` icon display, eventually aligning config with 'Jam' project and using `electron-builder.json`. Build requires admin privileges and Developer Mode enabled on Windows. Icon cache clearing may be needed for File Explorer to update.
+*   **Update Check:** Implemented a feature in `main.js` to check `https://api.github.com/repos/glvckoma/AJC-Price-Checker/releases/latest` on startup. Uses `axios` and `semver` to compare versions. If a newer version is found, uses `dialog.showMessageBox` to notify the user and `shell.openExternal` to offer opening the releases page. Added `semver` dependency.
 
 ## Next Steps
 
-1.  **Update Memory Bank:** Complete the update of `activeContext.md` (this file) and `progress.md`. Review other core files.
-2.  **Commit Fixes & Docs:** Stage and commit the latest code fixes and Memory Bank updates. Push to GitHub.
-3.  **Further Enhancements (Optional):** Consider implementing suggestions like loading indicators, clear button, result highlighting, etc.
-4.  **Final Build & Test:** Perform a final build (`npm run build` as admin) and test the portable `.exe`.
+1.  **Update Memory Bank:** Completed updates for the update check feature (`activeContext.md`, `progress.md`, `systemPatterns.md`, `techContext.md`).
+2.  **Commit Changes:** Stage and commit the `semver` installation, `main.js` modifications, and Memory Bank updates. Push to GitHub.
+3.  **Testing:** Run the application (`npm start`) to ensure the update check functions correctly (or fails silently if no newer release exists/network error). Test the "Download" button functionality.
+4.  **Tagging & Release (Crucial for Testing):** To fully test the update notification, a new release needs to be tagged and created on GitHub with a version number higher than the current `package.json` version (e.g., `v1.0.1` or `v1.1.0`).
+5.  **Further Enhancements (Optional):** Consider implementing suggestions like loading indicators, clear button, result highlighting, etc.
+6.  **Final Build & Test:** Perform a final build (`npm run build` as admin) and test the portable `.exe`.
 
 ## Development Nuances & Run Commands
 
