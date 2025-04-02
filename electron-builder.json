@@ -1,0 +1,21 @@
+{
+  "appId": "com.example.ajpricechecker",
+  "productName": "AJ Price Checker",
+  "files": [
+    "src/**/*",
+    "node_modules/**/*",
+    "package.json",
+    "assets/**/*"
+  ],
+  "directories": {
+    "output": "dist"
+  },
+  "win": {
+    "target": "portable",
+    "icon": "assets/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true
+  }
+}
