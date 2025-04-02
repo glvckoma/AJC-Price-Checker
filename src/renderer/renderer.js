@@ -7,7 +7,7 @@ const statusBar = document.getElementById('statusBar');
 const resultsList = document.getElementById('resultsList');
 const detailsArea = document.getElementById('detailsArea');
 
-const API_BASE_URL = 'http://localhost:5000'; // Assuming Flask runs on default port
+// const API_BASE_URL = 'http://localhost:5000'; // No longer needed
 
 // --- Event Listeners ---
 
@@ -36,25 +36,13 @@ async function handleSearch() {
     setControlsEnabled(false);
 
     try {
-        const response = await fetch(`${API_BASE_URL}/search?item=${encodeURIComponent(searchTerm)}`);
-
-        if (!response.ok) {
-            // Try to get error message from API response body
-            let errorMsg = `API Error: ${response.status} ${response.statusText}`;
-            try {
-                const errorData = await response.json();
-                errorMsg = `API Error: ${errorData.error || response.statusText}`;
-            } catch (jsonError) {
-                // Ignore if response body is not JSON
-            }
-            throw new Error(errorMsg);
-        }
-
-        const results = await response.json();
+        // Use IPC invoke to call the main process handler
+        const results = await window.ipcApi.invoke('search-wiki', searchTerm);
         displayResults(results);
         updateStatus(results.length > 0 ? `Found ${results.length} results.` : 'No results found.');
 
     } catch (error) {
+        // Errors from invoke (including rejections from main process) land here
         console.error('Search Error:', error);
         updateStatus(`Search failed: ${error.message}`, true);
     } finally {
@@ -77,22 +65,13 @@ async function handleResultClick(event) {
     setControlsEnabled(false);
 
     try {
-        const response = await fetch(`${API_BASE_URL}/details?page=${encodeURIComponent(pageUrl)}`);
-
-        if (!response.ok) {
-            let errorMsg = `API Error: ${response.status} ${response.statusText}`;
-             try {
-                const errorData = await response.json();
-                errorMsg = `API Error: ${errorData.error || response.statusText}`;
-            } catch (jsonError) { }
-            throw new Error(errorMsg);
-        }
-
-        const details = await response.json();
+         // Use IPC invoke to call the main process handler
+        const details = await window.ipcApi.invoke('get-page-details', pageUrl);
         displayDetails(details);
         updateStatus('Details loaded.');
 
     } catch (error) {
+        // Errors from invoke (including rejections from main process) land here
         console.error('Details Fetch Error:', error);
         updateStatus(`Failed to fetch details: ${error.message}`, true);
         detailsArea.textContent = `Error fetching details:\n${error.message}`; // Show error in details area too
