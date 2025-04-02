@@ -17,12 +17,16 @@ The application is being refactored into a single, integrated Electron applicati
 *   **Framework:** Electron
 *   **Runtime:** Node.js
 *   **Languages:** HTML, CSS, JavaScript
-*   **UI Structure:** Standard Electron setup (`main.js`, `preload.js`, `renderer/index.html`, `renderer/renderer.js`).
+*   **UI Structure:** Standard Electron setup (`src/main.js`, `src/preload.js`, `src/renderer/index.html`, `src/renderer/renderer.js`).
+*   **Main Process Structure (Modular):**
+    *   `src/main.js`: Entry point, orchestrates modules.
+    *   `src/app/window.js`: Manages the `BrowserWindow`.
+    *   `src/services/scraper.js`: Handles wiki interaction (`axios`, `cheerio`).
+    *   `src/services/updater.js`: Handles update checks (`axios`, `semver`, `dialog`, `shell`).
+    *   `src/ipc/handlers.js`: Configures `ipcMain` listeners.
 *   **Styling:** Tailwind CSS (using PostCSS, manual CSS generation workaround due to build issues). Dark mode enabled by default.
-*   **Backend Logic (Integrated):**
-    *   Web scraping logic rewritten in Node.js within the Electron main process (`main.js` or separate modules).
-    *   Uses libraries like `axios` (for HTTP requests) and `cheerio` (for HTML parsing).
-*   **Communication (Internal):** Electron's Inter-Process Communication (IPC - `ipcMain`, `ipcRenderer`) used to send requests from the renderer (UI) to the main process (backend logic) and return results.
+*   **Backend Logic (Integrated):** Encapsulated within main process service modules (`scraper.js`, `updater.js`).
+*   **Communication (Internal):** Electron's Inter-Process Communication (IPC - `ipcMain`, `ipcRenderer`, `contextBridge`) used between renderer and main process modules via `ipc/handlers.js`.
 *   **Packaging:** `electron-builder` configured to produce a portable Windows `.exe`.
 
 ## Key Dependencies (Node.js)

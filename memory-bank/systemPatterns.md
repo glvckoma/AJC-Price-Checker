@@ -1,48 +1,68 @@
 # System Patterns: AJ Item Price Checker
 
-## Architecture Overview (Updated 2025-04-02)
+## Architecture Overview (Updated 2025-04-02 - Modular Main Process)
 
-The application now follows an **integrated Electron architecture**, where both the frontend UI and the backend scraping logic reside within the same Electron application process structure.
+The application follows an integrated Electron architecture. The main process logic has been modularized for better organization and maintainability.
 
 ```mermaid
 graph TD
     subgraph Electron App
-        B(Main Process)
-        C(Renderer Process - UI)
+        subgraph Main Process
+            MP_Entry[main.js Entry Point] --> MP_Win[app/window.js]
+            MP_Entry --> MP_IPC[ipc/handlers.js]
+            MP_Entry --> MP_Scraper[services/scraper.js]
+            MP_Entry --> MP_Updater[services/updater.js]
+        end
+        MP_IPC -- Uses --> MP_Scraper
+        MP_IPC -- Uses --> MP_Updater
+        MP_IPC -- Uses --> MP_Win
+
+        R[Renderer Process UI<br>(renderer.js)]
     end
-    A[User] -- Interacts --> C;
-    C -- IPC Request (Search/Details) --> B;
-    B -- IPC Response (Results/Details) --> C;
-    B -- HTTP Request (axios - Scraping) --> D{{AJ Item Worth Wiki}};
-    D -- HTML Response --> B;
-    B -- HTTP Request (axios - Update Check) --> E{{GitHub API}};
-    E -- JSON Response --> B;
-    B -- Show Dialog (dialog.showMessageBox) --> A;
-    A -- Click Download --> B;
-    B -- Open External (shell.openExternal) --> F[Browser];
+
+    User -- Interacts --> R;
+    R -- IPC Request --> MP_IPC;
+    MP_IPC -- IPC Response --> R;
+
+    MP_Scraper -- HTTP Request --> Wiki[AJ Item Worth Wiki];
+    Wiki -- HTML Response --> MP_Scraper;
+
+    MP_Updater -- HTTP Request --> GitHub[GitHub API];
+    GitHub -- JSON Response --> MP_Updater;
+
+    MP_Updater -- Show Dialog --> User;
+    MP_IPC -- Open External --> Browser;
 
 ```
 
 *   **Electron App:** The single packaged application (`.exe`).
-*   **Main Process (`main.js`):** Runs Node.js. Handles window creation, application lifecycle, and contains the backend web scraping logic (using `axios` and `cheerio`). Performs network requests to the external wiki.
-*   **Renderer Process (`renderer.js`):** Runs the user interface (HTML/CSS/JS) within a Chromium window. Handles user input and displays results.
-*   **Inter-Process Communication (IPC):** The Renderer process sends requests (e.g., search term, page URL) to the Main process via Electron's IPC channels. The Main process performs the scraping and sends the results (or errors) back to the Renderer process via IPC.
- *   **External Services:**
-     *   The Animal Jam Item Worth Wiki (`aj-item-worth.fandom.com`), the primary data source for item worth.
-     *   GitHub API (`api.github.com`), used for checking for application updates via the `/releases/latest` endpoint.
+*   **Main Process (Modular):** Runs Node.js. Orchestrated by `src/main.js`.
+    *   `src/app/window.js`: Handles main browser window creation and management.
+    *   `src/services/scraper.js`: Contains all logic for fetching and parsing data from the AJ Item Worth Wiki (using `axios`, `cheerio`).
+    *   `src/services/updater.js`: Handles checking for application updates via the GitHub API (using `axios`, `semver`, `dialog`, `shell`).
+    *   `src/ipc/handlers.js`: Sets up and manages all `ipcMain` listeners, delegating tasks to the appropriate services (`scraper`, `updater`).
+*   **Renderer Process (`src/renderer/renderer.js`):** Runs the user interface (HTML/CSS/JS) within a Chromium window. Handles user input, displays results, and communicates with the main process via the `preload.js` bridge.
+*   **Inter-Process Communication (IPC):** The Renderer process sends requests via the `contextBridge` API exposed in `src/preload.js`. These requests are handled by listeners set up in `src/ipc/handlers.js` in the Main process, which then calls the relevant service modules. Results or errors are returned to the Renderer.
+*   **External Services:**
+    *   The Animal Jam Item Worth Wiki (`aj-item-worth.fandom.com`), accessed by `scraper.js`.
+    *   GitHub API (`api.github.com`), accessed by `updater.js`.
 
 ## Key Patterns & Decisions
 
-1.  **Integrated Backend:** The scraping logic is ported to Node.js and runs directly within the Electron main process, eliminating the need for a separate server process (like Python/Flask).
-2.  **IPC for Communication:** Electron's built-in `ipcMain` and `ipcRenderer` modules are used for secure and efficient communication between the frontend (Renderer) and the backend logic (Main). This replaces the previous HTTP API calls.
-3.  **Asynchronous Operations (Main Process):** The main process uses `async/await` with `axios` for network requests and potentially for parsing with `cheerio` to avoid blocking the main thread while scraping.
-4.  **Web Scraping (Node.js):** Standard Node.js libraries (`axios`, `cheerio`) are used for fetching and parsing HTML from the target wiki. This pattern remains dependent on the wiki's structure.
-5.  **Single Process Deployment:** The entire application (UI and backend logic) is packaged into a single executable using `electron-builder`.
-6.  **Update Check:** On application startup, the main process asynchronously checks the GitHub API for the latest release tag. It compares this with the current application version using `semver`. If a newer version exists, it prompts the user with a native dialog offering to open the GitHub releases page. Errors during the update check are logged silently.
-7.  **Error Handling:** Errors during wiki scraping (network, parsing) are handled within the main process logic and communicated back to the renderer process via IPC for display. Update check errors are handled silently in the main process.
+1.  **Modular Main Process:** The main process logic is broken down into distinct modules based on responsibility (windowing, scraping, updates, IPC handling) to improve code organization, testability, and maintainability. `main.js` acts as the central orchestrator.
+2.  **Service Layer:** Business logic (scraping, update checking) is encapsulated within dedicated service modules (`services/scraper.js`, `services/updater.js`).
+3.  **IPC Abstraction:** IPC handler setup is centralized in `ipc/handlers.js`, decoupling it from the core application logic and specific services.
+4.  **Integrated Backend:** The Node.js backend logic runs directly within the Electron main process structure.
+5.  **IPC for Communication:** Electron's `ipcMain`/`ipcRenderer` with `contextBridge` is used for secure communication between processes.
+6.  **Asynchronous Operations:** `async/await` is used extensively in the main process for non-blocking I/O (network requests, file system access if added later).
+7.  **Web Scraping (Node.js):** Standard libraries (`axios`, `cheerio`) are used within `scraper.js`.
+8.  **Single Process Deployment:** Packaged into a single executable using `electron-builder`.
+9.  **Update Check:** Logic is now encapsulated in `updater.js`, triggered by `main.js` on startup. Uses `semver` for comparison and `dialog`/`shell` for user interaction. Renderer is notified via IPC for status updates.
+10. **Error Handling:** Errors during scraping or updates are generally handled within the respective services and propagated via Promises/rejections through IPC handlers to the renderer.
 
 ## Comparison to Previous Architectures
 
 *   **Original (Python/PyQt5):** Monolithic application combining UI and logic.
 *   **Intermediate (Electron + Python API):** Decoupled UI and backend, but required running two separate processes and used HTTP for local communication.
-*   **Current (Integrated Electron):** Combines UI and backend logic within Electron's process model, using IPC for internal communication. Simplifies deployment to a single executable but requires rewriting the backend logic in Node.js.
+*   **Previous (Integrated Electron - Monolithic Main):** Combined UI and backend logic within Electron's process model, but `main.js` handled too many responsibilities.
+*   **Current (Integrated Electron - Modular Main):** Main process logic is now separated into distinct modules for better structure and maintainability.

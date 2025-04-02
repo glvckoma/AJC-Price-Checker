@@ -4,11 +4,11 @@
 
 *   **Project Phase:** Integrated Node.js backend complete. Documentation updated.
 *   **Decision:** Application uses a fully integrated Electron architecture (Node.js backend).
-*   **Memory Bank:** Updated to reflect current state.
+*   **Memory Bank:** Updated to reflect current state, including main process modularization.
 *   **Frontend:** Electron UI functional, styled with Tailwind CSS (dark mode default), uses IPC for data requests.
-*   **Backend:** Node.js scraping logic implemented in the main process using `axios`/`cheerio`, communicating via IPC. Python backend removed.
+*   **Backend (Main Process):** Refactored into modules (`app/`, `services/`, `ipc/`). Node.js scraping logic (`services/scraper.js`) and update checking (`services/updater.js`) are separated. `main.js` orchestrates modules. Python backend removed.
  *   **Build:** `electron-builder` configured for portable `.exe` output. Build requires admin privileges. Manual CSS generation workaround in place.
- *   **Documentation:** `README.md` created. Memory Bank updated for refactor and update check feature.
+ *   **Documentation:** `README.md` created. Memory Bank updated for refactor, update check feature, and main process modularization.
 
 ## What Works
 
