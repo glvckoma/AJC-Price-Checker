@@ -74,8 +74,8 @@ function parseSearchResults(htmlContent) {
 }
 
 // --- Helper: Extract Worth Details (Handles Multiple Sections) ---
-function extractWorthDetails(htmlContent) {
-    console.log("Parsing item details for multiple sections...");
+function extractWorthDetails(htmlContent, pageUrl) { // Added pageUrl for logging context
+    console.log(`Parsing item details for multiple sections on page: ${pageUrl}`);
     const $ = cheerio.load(htmlContent);
     const sections = []; // Array to hold section objects
 
@@ -123,35 +123,46 @@ function extractWorthDetails(htmlContent) {
                 const headerRow = rows.first();
                 headers = headerRow.find('th, td').map((i, el) => $(el).text().trim()).get();
 
-                const dataRowsTr = rows.slice(1);
+                const dataRowsTr = rows.slice(1); // Get all rows except the header
+                let imageRowIndex = -1; // Track which row contains images
 
-                // Extract images from the first data row
-                if (dataRowsTr.length > 0) {
-                    const firstDataRow = dataRowsTr.first();
-                    const numColumns = headers.length > 0 ? headers.length : firstDataRow.find('td, th').length;
-                    const imageCells = firstDataRow.find('td, th');
+                // Find the image row and extract image URLs
+                dataRowsTr.each((rowIndex, rowElement) => {
+                    const $row = $(rowElement);
+                    // Check if this row contains images
+                    if ($row.find('img').length > 0) {
+                        imageRowIndex = rowIndex; // Mark this as the image row
+                        const numColumns = headers.length > 0 ? headers.length : $row.find('td, th').length;
+                        const imageCells = $row.find('td, th');
 
-                    for (let i = 0; i < numColumns; i++) {
-                        let cellImageUrl = null;
-                        if (i < imageCells.length) {
-                            const imgTag = $(imageCells[i]).find('img').first();
-                            if (imgTag.length > 0) {
-                                cellImageUrl = imgTag.attr('data-src') || imgTag.attr('src');
-                                if (cellImageUrl && cellImageUrl.includes('/scale-to-width-down/')) {
-                                    cellImageUrl = cellImageUrl.split('/scale-to-width-down/')[0];
+                        for (let i = 0; i < numColumns; i++) {
+                            let cellImageUrl = null;
+                            if (i < imageCells.length) {
+                                const imgTag = $(imageCells[i]).find('img').first();
+                                if (imgTag.length > 0) {
+                                    cellImageUrl = imgTag.attr('data-src') || imgTag.attr('src');
+                                    if (cellImageUrl && cellImageUrl.includes('/scale-to-width-down/')) {
+                                        cellImageUrl = cellImageUrl.split('/scale-to-width-down/')[0];
+                                    }
                                 }
                             }
+                            tableImageUrls.push(cellImageUrl);
                         }
-                        tableImageUrls.push(cellImageUrl);
+                        return false; // Stop searching for image row once found
                     }
-                }
+                });
 
-                // Extract text data from relevant rows
-                const textDataRowsTr = (tableImageUrls.length > 0 && tableImageUrls.some(url => url !== null)) ? dataRowsTr.slice(1) : dataRowsTr;
-                textDataRowsTr.each((rowIndex, rowElement) => {
+                // Extract text data from rows that are NOT the image row
+                dataRowsTr.each((rowIndex, rowElement) => {
+                    if (rowIndex === imageRowIndex) {
+                        return; // Skip the image row
+                    }
                     let rowCellsText = [];
                     $(rowElement).find('td, th').each((cellIndex, cellElement) => {
-                        let cellText = $(cellElement).text().replace(/\s+/g, ' ').trim();
+                        // Clone the cell, remove 'a' tags (which might contain images or just be links), then get text
+                        const $cellClone = $(cellElement).clone();
+                        $cellClone.find('a').remove();
+                        let cellText = $cellClone.text().replace(/\s+/g, ' ').trim();
                         rowCellsText.push(cellText);
                     });
                     if (rowCellsText.some(text => text)) {
@@ -183,27 +194,45 @@ function extractWorthDetails(htmlContent) {
          console.log("No sections found via H2, trying global table search...");
          const worthTable = contentArea.find('table.wikitable, table.article-table').first();
          if (worthTable.length > 0) {
+             console.log("Found global fallback table.");
              // (Repeat similar table parsing logic as above, but without a section title)
-             // ... [Simplified for brevity - assumes similar structure] ...
              const rows = worthTable.find('tr');
              let headers = []; let tableRowsData = []; let tableImageUrls = [];
-             if (rows.length > 0) { /* ... extract headers, images, rows ... */
+             if (rows.length > 0) {
                  const headerRow = rows.first();
                  headers = headerRow.find('th, td').map((i, el) => $(el).text().trim()).get();
                  const dataRowsTr = rows.slice(1);
-                 if (dataRowsTr.length > 0) { /* ... extract images ... */
-                     const firstDataRow = dataRowsTr.first();
-                     const numColumns = headers.length > 0 ? headers.length : firstDataRow.find('td, th').length;
-                     const imageCells = firstDataRow.find('td, th');
-                     for (let i = 0; i < numColumns; i++) { /* ... extract image URL ... */
-                         let cellImageUrl = null;
-                         if (i < imageCells.length) { const imgTag = $(imageCells[i]).find('img').first(); if (imgTag.length > 0) { cellImageUrl = imgTag.attr('data-src') || imgTag.attr('src'); if (cellImageUrl && cellImageUrl.includes('/scale-to-width-down/')) { cellImageUrl = cellImageUrl.split('/scale-to-width-down/')[0]; } } }
-                         tableImageUrls.push(cellImageUrl);
+                 let imageRowIndex = -1; // Track image row
+
+                 // Find image row
+                 dataRowsTr.each((rowIndex, rowElement) => {
+                     if ($(rowElement).find('img').length > 0) {
+                         imageRowIndex = rowIndex;
+                         const numColumns = headers.length > 0 ? headers.length : $(rowElement).find('td, th').length;
+                         const imageCells = $(rowElement).find('td, th');
+                         for (let i = 0; i < numColumns; i++) {
+                             let cellImageUrl = null;
+                             if (i < imageCells.length) { const imgTag = $(imageCells[i]).find('img').first(); if (imgTag.length > 0) { cellImageUrl = imgTag.attr('data-src') || imgTag.attr('src'); if (cellImageUrl && cellImageUrl.includes('/scale-to-width-down/')) { cellImageUrl = cellImageUrl.split('/scale-to-width-down/')[0]; } } }
+                             tableImageUrls.push(cellImageUrl);
+                         }
+                         return false; // Stop after finding image row
                      }
-                 }
-                 const textDataRowsTr = (tableImageUrls.length > 0 && tableImageUrls.some(url => url !== null)) ? dataRowsTr.slice(1) : dataRowsTr;
-                 textDataRowsTr.each((rowIndex, rowElement) => { /* ... extract row text ... */
-                     let rowCellsText = []; $(rowElement).find('td, th').each((cellIndex, cellElement) => { let cellText = $(cellElement).text().replace(/\s+/g, ' ').trim(); rowCellsText.push(cellText); }); if (rowCellsText.some(text => text)) { tableRowsData.push(rowCellsText); }
+                 });
+
+                 // Extract text from non-image rows
+                 dataRowsTr.each((rowIndex, rowElement) => {
+                     if (rowIndex === imageRowIndex) return; // Skip image row
+                     let rowCellsText = [];
+                     $(rowElement).find('td, th').each((cellIndex, cellElement) => {
+                         // Clone the cell, remove 'a' tags, then get text
+                         const $cellClone = $(cellElement).clone();
+                         $cellClone.find('a').remove();
+                         let cellText = $cellClone.text().replace(/\s+/g, ' ').trim();
+                         rowCellsText.push(cellText);
+                     });
+                     if (rowCellsText.some(text => text)) {
+                         tableRowsData.push(rowCellsText);
+                     }
                  });
              }
              if (headers.length > 0 || tableRowsData.length > 0) {
@@ -212,33 +241,46 @@ function extractWorthDetails(htmlContent) {
          }
     }
 
-     // Fallback: If still no sections, grab relevant paragraphs
+     // Fallback: If still no sections found (neither H2 sections nor global table), grab relevant paragraphs
      if (sections.length === 0) {
-         console.log("No tables found, searching paragraphs...");
+         console.log("No tables found, searching relevant paragraphs...");
          let paragraphText = [];
-         contentArea.find('p').slice(0, 10).each((i, el) => {
-             const pText = $(el).text().replace(/\s+/g, ' ').trim();
+         contentArea.find('p').slice(0, 10).each((i, el) => { // Limit to first 10 paragraphs
+             const pText = $(el).text().replace(/\s+/g, ' ').trim(); // Gets TEXT content of paragraphs
              const pTextLower = pText.toLowerCase();
-             if (pText && (pTextLower.includes("worth") || pTextLower.includes("value") || pTextLower.includes("den beta") || pTextLower.includes("diamond") || pTextLower.includes("collar") || pTextLower.includes("wrist"))) {
+             // Added more keywords relevant to item worth
+             if (pText && (pTextLower.includes("worth") || pTextLower.includes("value") || pTextLower.includes("den beta") || pTextLower.includes("diamond") || pTextLower.includes("collar") || pTextLower.includes("wrist") || pTextLower.includes("spike") || pTextLower.includes("headdress") || pTextLower.includes("party hat"))) {
+                 console.log(`Found relevant paragraph: ${pText.substring(0, 50)}...`);
                  paragraphText.push(pText);
              }
          });
+         // If no keyword paragraphs found, grab the very first paragraph as general info
          if (paragraphText.length === 0) {
-             const firstP = contentArea.find('p').first().text().replace(/\s+/g, ' ').trim();
-             if (firstP) paragraphText.push(`[General Info:] ${firstP}`);
+             console.log("No keyword paragraphs found, grabbing first paragraph.");
+             const firstP = contentArea.find('p').first().text().replace(/\s+/g, ' ').trim(); // Gets TEXT of first <p>
+             if (firstP) {
+                 paragraphText.push(`[General Info:] ${firstP}`);
+             } else {
+                 console.log("Could not find even the first paragraph.");
+             }
          }
+         // If any paragraphs were found (keyword or first), create a 'text' section
          if (paragraphText.length > 0) {
+             console.log("Adding extracted paragraphs as a text section.");
              sections.push({ type: "text", title: "Worth Information", content: paragraphText.join('\n\n') });
+         } else {
+             console.log("No relevant paragraphs found to add as fallback.");
          }
+         // Removed duplicate else block here
      }
 
-    // If after all that, sections is still empty, return a generic message
+    // Final check: If absolutely no sections were added, return the "Not Found" message.
     if (sections.length === 0) {
-        console.log("Could not extract any specific worth details.");
+        console.warn(`Parser found no structured content (tables or paragraphs) on ${pageUrl}. Returning 'Not Found'.`);
         sections.push({ type: "text", title: "Not Found", content: "Could not extract specific worth details from the page structure." });
     }
 
-    console.log(`Returning ${sections.length} sections.`);
+    console.log(`Returning ${sections.length} sections from parser for ${pageUrl}.`);
     return sections; // Return the array of section objects
 }
 
@@ -310,16 +352,33 @@ async function handleGetPageDetails(event, pageUrl) {
         console.error(`IPC Error: Invalid page URL received: ${pageUrl}`);
         throw new Error(`Invalid page URL provided.`);
    }
+  let htmlContent;
   try {
-    const htmlContent = await fetchPageContent(pageUrl);
-    const details = extractWorthDetails(htmlContent);
-    const sections = extractWorthDetails(htmlContent);
-    // Return an object containing both sections and the source URL
-    return { sections: sections, source_url: pageUrl };
-  } catch (error) {
-    console.error(`IPC Error during details fetch for "${pageUrl}":`, error);
-    throw new Error(error.message || "Failed to get page details.");
+    htmlContent = await fetchPageContent(pageUrl);
+    // Removed temporary logging
+  } catch (fetchError) {
+    // Handle fetch errors separately
+    console.error(`IPC Error during FETCH for "${pageUrl}":`, fetchError);
+    throw new Error(`Failed to fetch page details for ${pageUrl}. Reason: ${fetchError.message || "Unknown network error"}`);
   }
+
+  // Now, try parsing the fetched content
+  let sections;
+  try {
+      sections = extractWorthDetails(htmlContent, pageUrl);
+      // Add an extra check here: if extractWorthDetails somehow returned non-array, force error
+      if (!Array.isArray(sections)) {
+          console.error(`Parser function extractWorthDetails did not return an array for ${pageUrl}!`);
+          throw new Error("Internal parser error: Invalid data format returned.");
+      }
+  } catch (parseError) {
+      console.error(`Error PARSING details for "${pageUrl}":`, parseError);
+      // If parsing fails, create a specific error section
+      sections = [{ type: "text", title: "Parsing Error", content: `Failed to parse page content. Error: ${parseError.message}` }];
+  }
+
+  // Return the result (either parsed sections or the parsing error section)
+  return { sections: sections, source_url: pageUrl };
 }
 
 

@@ -81,18 +81,31 @@ async function handleResultClick(event) {
     try {
          // Use IPC invoke to call the main process handler
         const response = await window.ipcApi.invoke('get-page-details', pageUrl); // Get the whole response object
+
+        // --- DETAILED LOGGING ---
+        console.log('Received response from main process:', response);
         if (response && response.sections) {
+            console.log(`Received ${response.sections.length} sections. First section type: ${response.sections[0]?.type}, title: ${response.sections[0]?.title}`);
+        } else {
+            console.warn('Received invalid or empty response structure:', response);
+        }
+        // --- END LOGGING ---
+
+        if (response && Array.isArray(response.sections)) { // Check if sections is an array
             displayDetails(response.sections, response.source_url); // Pass sections and source_url separately
             updateStatus('Details loaded.');
         } else {
-             throw new Error("Invalid data structure received from main process.");
+             // Throw a more specific error if the structure is wrong
+             throw new Error(`Invalid data structure received from main process. Expected { sections: [], ... }, got: ${JSON.stringify(response)}`);
         }
 
     } catch (error) {
         // Errors from invoke (including rejections from main process) land here
         console.error('Details Fetch Error:', error);
-        updateStatus(`Failed to fetch details: ${error.message}`, true);
-        detailsArea.textContent = `Error fetching details:\n${error.message}`; // Show error in details area too
+        const errorMessage = `Failed to fetch details: ${error.message}`;
+        updateStatus(errorMessage, true);
+        // Ensure error message is displayed using textContent to prevent HTML injection
+        detailsArea.textContent = errorMessage;
     } finally {
         setControlsEnabled(true);
     }
