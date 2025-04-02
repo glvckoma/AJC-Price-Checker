@@ -23,7 +23,7 @@ input { border-color: #d1d5db; background-color: #fff; color: #111827; }
 input::placeholder { color: #6b7280; }
 button { background-color: #3b82f6; color: #fff; }
 button:hover { background-color: #2563eb; }
-#statusBar { background-color: #e5e7eb; color: #4b5563; }
+#statusBar { background-color: #e5e7eb; } /* Removed default color */
 .results-container, .details-container { border-color: #e5e7eb; background-color: #f9fafb; }
 #resultsList { border-color: #d1d5db; background-color: #fff; }
 #resultsList li { border-color: #e5e7eb; color: #111827; }
@@ -49,7 +49,7 @@ img.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 .dark input::placeholder { color: #9ca3af; }
 .dark button { background-color: #2563eb; }
 .dark button:hover { background-color: #1d4ed8; }
-.dark #statusBar { background-color: #374151; color: #d1d5db; }
+.dark #statusBar { background-color: #374151; } /* Removed default color */
 .dark .results-container, .dark .details-container { border-color: #4b5563; background-color: #1f2937; } /* Dark container */
 .dark #resultsList { border-color: #4b5563; background-color: #374151; }
 .dark #resultsList li { border-color: #4b5563; color: #f9fafb; }
@@ -161,3 +161,47 @@ img.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 /* Basic table styling if needed beyond JS classes */
 #detailsArea table th, #detailsArea table td { vertical-align: top; }
 .dark #detailsArea table th, .dark #detailsArea table td { vertical-align: top; }
+
+/* Add transition for status bar color changes */
+#statusBar {
+  transition: color 0.3s ease-in-out;
+}
+
+/* Manually Added Status Color Classes (Workaround for build issue) */
+/* These rules define the classes used in renderer.js STATUS_STYLES */
+/* Tailwind applies these based on the presence of the .dark class on the body */
+
+/* Yellow (Searching) */
+.text-yellow-600 { color: #ca8a04; }
+.dark\:text-yellow-400 { color: #facc15; } /* Corrected */
+
+/* Green (Success) */
+.text-green-600 { color: #16a34a; }
+.dark\:text-green-400 { color: #4ade80; } /* Corrected */
+
+/* Gray (No Results) */
+.text-gray-500 { color: #6b7280; }
+.dark\:text-gray-500 { color: #6b7280; } /* Corrected */
+
+/* Red (Error) */
+.text-red-600 { color: #dc2626; }
+.dark\:text-red-400 { color: #f87171; } /* Corrected */
+
+/* Purple (Update Available) */
+.text-purple-600 { color: #9333ea; }
+.dark\:text-purple-400 { color: #c084fc; } /* Corrected */
+
+/* Add cursor/underline for update_available state (ensure they exist) */
+.cursor-pointer { cursor: pointer; }
+.hover\:underline:hover { text-decoration: underline; }
+
+/* Note: Blue (Fetching) and Gray (Ready) classes likely exist from original generation */
+/* .text-blue-600 { color: #2563eb; } */
+/* .dark .dark\:text-blue-400 { color: #60a5fa; } */ /* Corrected Selector if needed */
+/* .text-gray-600 { color: #4b5563; } */
+/* .dark .dark\:text-gray-400 { color: #9ca3af; } */ /* Corrected Selector if needed */
+/* .dark .dark\:text-blue-400 { color: #60a5fa; } */
+
+/* Ensure existing gray classes are defined if needed (already present but for completeness) */
+/* .text-gray-600 { color: #4b5563; } */
+/* .dark .dark\:text-gray-400 { color: #9ca3af; } */

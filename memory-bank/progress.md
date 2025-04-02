@@ -19,8 +19,9 @@
 *   Search results are returned via IPC and displayed in the list.
 *   Clicking a result sends a request to the main process via IPC.
 *   Main process fetches and parses details/images using Node.js scraping logic, **including handling of multiple sections/tables**.
- *   Worth details (table or text) and item images are returned via IPC and displayed correctly, including alignment. **Images are clickable and open in a modal. Source URL is displayed as a clickable link.**
- *   **Update Check:** Application checks GitHub releases on startup and notifies the user via a dialog if a newer version is available, offering a link to the releases page.
+ *   Worth details (table or text) and item images are returned via IPC and displayed correctly, including alignment. **Text within links inside table cells (e.g., "A Few RIMs") is now correctly preserved and displayed.** Images are clickable and open in a modal. Source URL is displayed as a clickable link.
+ *   **Update Check:** Application checks GitHub releases on startup and notifies the user via a dialog if a newer version is available, offering a link to the releases page. The status bar also updates visually and becomes clickable when an update is found.
+ *   **Dynamic Status Bar:** The status bar text color now changes based on application state (Ready, Searching, Fetching, Success, No Results, Error, Update Available) with a smooth transition.
  *   Application can be packaged into a portable `.exe` using `npm run build` (run as admin). **Icon configuration updated to use `build/icon.ico` via `electron-builder.json`.**
 
 ## What's Left to Build (High-Level)

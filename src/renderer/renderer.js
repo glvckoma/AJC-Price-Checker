@@ -36,16 +36,37 @@ imageModal.addEventListener('click', (event) => {
     }
 });
 
+// Add listener for status bar click (for update notification)
+statusBar.addEventListener('click', () => {
+    if (currentStatusState === 'update_available') {
+        console.log('Update available status clicked, triggering download...');
+        // Ask main process to trigger the download (open releases page)
+        window.ipcApi.triggerUpdateDownload();
+        // Optionally reset status after click, or leave it until next action
+        // updateStatus('Update download page opened.', 'info'); // Example reset
+    }
+});
+
+// Listen for status updates pushed from the main process (e.g., update available)
+window.ipcApi.onUpdateStatus((_event, data) => {
+    console.log('Received status update from main:', data);
+    if (data.statusType === 'update_available') {
+        updateStatus(data.message, 'update_available');
+    }
+    // Add more status types here if needed
+});
+
+
 // --- Handler Functions ---
 
 async function handleSearch() {
     const searchTerm = searchInput.value.trim();
     if (!searchTerm) {
-        updateStatus('Please enter an item name.', true);
+        updateStatus('Please enter an item name.', 'error'); // Use 'error' state
         return;
     }
 
-    updateStatus(`Searching for "${searchTerm}"...`);
+    updateStatus(`Searching for "${searchTerm}"...`, 'searching'); // Use 'searching' state
     clearResultsAndDetails();
     setControlsEnabled(false);
 
@@ -53,12 +74,15 @@ async function handleSearch() {
         // Use IPC invoke to call the main process handler
         const results = await window.ipcApi.invoke('search-wiki', searchTerm);
         displayResults(results);
-        updateStatus(results.length > 0 ? `Found ${results.length} results.` : 'No results found.');
+        // Determine state based on results
+        const statusState = results.length > 0 ? 'success' : 'no_results';
+        const statusMessage = results.length > 0 ? `Found ${results.length} results.` : 'No results found.';
+        updateStatus(statusMessage, statusState);
 
     } catch (error) {
         // Errors from invoke (including rejections from main process) land here
         console.error('Search Error:', error);
-        updateStatus(`Search failed: ${error.message}`, true);
+        updateStatus(`Search failed: ${error.message}`, 'error'); // Use 'error' state
     } finally {
         setControlsEnabled(true);
     }
@@ -74,7 +98,7 @@ async function handleResultClick(event) {
     const pageUrl = listItem.dataset.url;
     const pageTitle = listItem.textContent; // Get title from the list item text
 
-    updateStatus(`Fetching details for "${pageTitle}"...`);
+    updateStatus(`Fetching details for "${pageTitle}"...`, 'fetching'); // Use 'fetching' state
     detailsArea.textContent = ''; // Clear previous details
     setControlsEnabled(false);
 
@@ -91,9 +115,14 @@ async function handleResultClick(event) {
         }
         // --- END LOGGING ---
 
+        // Check for specific error section returned by main process
+        if (response && Array.isArray(response.sections) && response.sections[0]?.title === "Error") {
+             throw new Error(response.sections[0].content || "Failed to get details.");
+        }
+
         if (response && Array.isArray(response.sections)) { // Check if sections is an array
             displayDetails(response.sections, response.source_url); // Pass sections and source_url separately
-            updateStatus('Details loaded.');
+            updateStatus('Details loaded.', 'success'); // Use 'success' state
         } else {
              // Throw a more specific error if the structure is wrong
              throw new Error(`Invalid data structure received from main process. Expected { sections: [], ... }, got: ${JSON.stringify(response)}`);
@@ -103,7 +132,7 @@ async function handleResultClick(event) {
         // Errors from invoke (including rejections from main process) land here
         console.error('Details Fetch Error:', error);
         const errorMessage = `Failed to fetch details: ${error.message}`;
-        updateStatus(errorMessage, true);
+        updateStatus(errorMessage, 'error'); // Use 'error' state
         // Ensure error message is displayed using textContent to prevent HTML injection
         detailsArea.textContent = errorMessage;
     } finally {
@@ -114,10 +143,49 @@ async function handleResultClick(event) {
 
 // --- UI Update Functions ---
 
-function updateStatus(message, isError = false) {
+// Define status styles using Tailwind classes
+const STATUS_STYLES = {
+  ready: 'text-gray-600 dark:text-gray-400',
+  searching: 'text-yellow-600 dark:text-yellow-400',
+  fetching: 'text-blue-600 dark:text-blue-400',
+  success: 'text-green-600 dark:text-green-400',
+  no_results: 'text-gray-500 dark:text-gray-500',
+  error: 'text-red-600 dark:text-red-400',
+  update_available: 'text-purple-600 dark:text-purple-400 cursor-pointer hover:underline',
+};
+
+// Keep track of the current status state
+let currentStatusState = 'ready';
+
+/**
+ * Updates the status bar text and applies styling based on the state.
+ * @param {string} message - The message to display.
+ * @param {keyof STATUS_STYLES} state - The state key ('ready', 'searching', 'error', etc.).
+ */
+function updateStatus(message, state = 'ready') {
+    // Ensure state is valid, default to 'ready' if not
+    if (!STATUS_STYLES[state]) {
+        console.warn(`Invalid status state provided: ${state}. Defaulting to 'ready'.`);
+        state = 'ready';
+    }
+
+    currentStatusState = state; // Update global state tracker
+
     statusBar.textContent = `Status: ${message}`;
-    statusBar.style.color = isError ? 'red' : '#666'; // Simple error indication
-    console.log(`Status Update: ${message}`);
+    console.log(`Status Update (${state}): ${message}`);
+
+    // Remove previous state classes before adding the new one
+    Object.values(STATUS_STYLES).forEach(className => {
+        // Split potentially multiple classes in the string
+        className.split(' ').forEach(cls => {
+            if (cls) statusBar.classList.remove(cls);
+        });
+    });
+
+    // Add the classes for the new state
+    STATUS_STYLES[state].split(' ').forEach(cls => {
+        if (cls) statusBar.classList.add(cls);
+    });
 }
 
 function clearResultsAndDetails() {
@@ -267,4 +335,4 @@ function setControlsEnabled(enabled) {
 }
 
 // Initial status
-updateStatus('Ready. Enter an item name.');
+updateStatus('Ready. Enter an item name.', 'ready'); // Use 'ready' state

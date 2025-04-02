@@ -24,9 +24,10 @@ The application is being refactored into a single, integrated Electron applicati
     *   `src/services/scraper.js`: Handles wiki interaction (`axios`, `cheerio`).
     *   `src/services/updater.js`: Handles update checks (`axios`, `semver`, `dialog`, `shell`).
     *   `src/ipc/handlers.js`: Configures `ipcMain` listeners.
-*   **Styling:** Tailwind CSS (using PostCSS, manual CSS generation workaround due to build issues). Dark mode enabled by default.
+*   **Renderer Process (`src/renderer/renderer.js`):** Manages UI updates, handles user input, and implements dynamic status bar styling based on application state.
+*   **Styling:** Tailwind CSS (using PostCSS, manual CSS generation workaround due to build issues). Dark mode enabled by default. Dynamic status bar colors applied via JavaScript using predefined Tailwind classes. Manual CSS added for status bar transitions.
 *   **Backend Logic (Integrated):** Encapsulated within main process service modules (`scraper.js`, `updater.js`).
-*   **Communication (Internal):** Electron's Inter-Process Communication (IPC - `ipcMain`, `ipcRenderer`, `contextBridge`) used between renderer and main process modules via `ipc/handlers.js`.
+*   **Communication (Internal):** Electron's Inter-Process Communication (IPC - `ipcMain`, `ipcRenderer`, `contextBridge`) used between renderer and main process modules via `ipc/handlers.js`. Includes channels for search, details, external links, and update status notifications/triggers.
 *   **Packaging:** `electron-builder` configured to produce a portable Windows `.exe`.
 
 ## Key Dependencies (Node.js)

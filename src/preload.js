@@ -25,8 +25,27 @@ contextBridge.exposeInMainWorld(
       } else {
         console.error(`Invalid URL attempted to open: ${url}`);
       }
+    },
+    // Expose a function to safely trigger the update download
+    triggerUpdateDownload: () => {
+        ipcRenderer.send('trigger-update-download');
+    },
+    // Expose a function to listen for status updates from the main process
+    onUpdateStatus: (callback) => {
+        // Define allowed channel
+        const channel = 'update-status';
+        // Use ipcRenderer.on for listening to messages sent from main
+        // Make sure to remove the listener when it's no longer needed to prevent memory leaks
+        // (though in this simple case, it might live for the lifetime of the window)
+        const listener = (event, ...args) => callback(event, ...args);
+        ipcRenderer.on(channel, listener);
+
+        // Return a function to remove the listener
+        return () => {
+            ipcRenderer.removeListener(channel, listener);
+        };
     }
   }
 );
 
-console.log('Preload script executed, ipcApi exposed.');
+console.log('Preload script executed, ipcApi exposed with invoke, openExternalLink, triggerUpdateDownload, and onUpdateStatus.');

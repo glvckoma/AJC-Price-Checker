@@ -186,9 +186,8 @@ function extractWorthDetails(htmlContent, pageUrl) {
                     if (rowIndex === imageRowIndex) return;
                     let rowCellsText = [];
                     $(rowElement).find('td, th').each((cellIndex, cellElement) => {
-                        const $cellClone = $(cellElement).clone();
-                        $cellClone.find('a').remove();
-                        let cellText = $cellClone.text().replace(/\s+/g, ' ').trim();
+                        // Get text content directly, preserving text within links
+                        let cellText = $(cellElement).text().replace(/\s+/g, ' ').trim();
                         rowCellsText.push(cellText);
                     });
                     if (rowCellsText.some(text => text)) {
@@ -242,9 +241,8 @@ function extractWorthDetails(htmlContent, pageUrl) {
                      if (rowIndex === imageRowIndex) return;
                      let rowCellsText = [];
                      $(rowElement).find('td, th').each((cellIndex, cellElement) => {
-                         const $cellClone = $(cellElement).clone();
-                         $cellClone.find('a').remove();
-                         let cellText = $cellClone.text().replace(/\s+/g, ' ').trim();
+                         // Get text content directly, preserving text within links
+                         let cellText = $(cellElement).text().replace(/\s+/g, ' ').trim();
                          rowCellsText.push(cellText);
                      });
                      if (rowCellsText.some(text => text)) {

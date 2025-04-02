@@ -41,8 +41,8 @@ graph TD
     *   `src/services/scraper.js`: Contains all logic for fetching and parsing data from the AJ Item Worth Wiki (using `axios`, `cheerio`).
     *   `src/services/updater.js`: Handles checking for application updates via the GitHub API (using `axios`, `semver`, `dialog`, `shell`).
     *   `src/ipc/handlers.js`: Sets up and manages all `ipcMain` listeners, delegating tasks to the appropriate services (`scraper`, `updater`).
-*   **Renderer Process (`src/renderer/renderer.js`):** Runs the user interface (HTML/CSS/JS) within a Chromium window. Handles user input, displays results, and communicates with the main process via the `preload.js` bridge.
-*   **Inter-Process Communication (IPC):** The Renderer process sends requests via the `contextBridge` API exposed in `src/preload.js`. These requests are handled by listeners set up in `src/ipc/handlers.js` in the Main process, which then calls the relevant service modules. Results or errors are returned to the Renderer.
+*   **Renderer Process (`src/renderer/renderer.js`):** Runs the user interface (HTML/CSS/JS) within a Chromium window. Handles user input, displays results, manages UI state (including dynamic status bar styling), and communicates with the main process via the `preload.js` bridge.
+*   **Inter-Process Communication (IPC):** The Renderer process sends requests via the `contextBridge` API exposed in `src/preload.js`. These requests are handled by listeners set up in `src/ipc/handlers.js` in the Main process, which then calls the relevant service modules. Results, errors, and status updates (like 'update_available') are returned to the Renderer.
 *   **External Services:**
     *   The Animal Jam Item Worth Wiki (`aj-item-worth.fandom.com`), accessed by `scraper.js`.
     *   GitHub API (`api.github.com`), accessed by `updater.js`.
@@ -57,8 +57,9 @@ graph TD
 6.  **Asynchronous Operations:** `async/await` is used extensively in the main process for non-blocking I/O (network requests, file system access if added later).
 7.  **Web Scraping (Node.js):** Standard libraries (`axios`, `cheerio`) are used within `scraper.js`.
 8.  **Single Process Deployment:** Packaged into a single executable using `electron-builder`.
-9.  **Update Check:** Logic is now encapsulated in `updater.js`, triggered by `main.js` on startup. Uses `semver` for comparison and `dialog`/`shell` for user interaction. Renderer is notified via IPC for status updates.
-10. **Error Handling:** Errors during scraping or updates are generally handled within the respective services and propagated via Promises/rejections through IPC handlers to the renderer.
+9.  **Update Check:** Logic encapsulated in `updater.js`, triggered by `main.js`. Uses `semver`, `dialog`/`shell`. Renderer is notified via IPC (`update-status` channel) for visual feedback in the status bar.
+10. **Dynamic Status Bar:** The renderer process (`renderer.js`) manages the status bar's appearance based on application state (Ready, Searching, Fetching, Success, Error, Update Available) by applying predefined Tailwind CSS classes. Includes a click handler for the 'Update Available' state.
+11. **Error Handling:** Errors during scraping or updates are generally handled within the respective services and propagated via Promises/rejections through IPC handlers to the renderer for display in the status bar.
 
 ## Comparison to Previous Architectures
 
