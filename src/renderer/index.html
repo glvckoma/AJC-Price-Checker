@@ -35,6 +35,14 @@
         </div>
     </div>
 
+    <!-- Image Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg max-w-3xl max-h-[80vh] relative">
+            <button id="closeModalButton" class="absolute top-2 right-2 text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white text-2xl font-bold">&times;</button>
+            <img id="modalImage" src="" alt="Expanded Item Image" class="block max-w-full max-h-[70vh] object-contain"/>
+        </div>
+    </div>
+
     <script src="./renderer.js"></script>
 </body>
 </html>

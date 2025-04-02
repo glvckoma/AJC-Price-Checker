@@ -1,12 +1,12 @@
 /* Generated CSS based on Tailwind classes in index.html & renderer.js - Manual Workaround */
-/* Includes Dark Mode Styles & Table Image Row Styles - Regenerated */
+/* Includes Dark Mode Styles, Table Image Row Styles, Modal Styles - Regenerated */
 
 /* Tailwind Base */
 *, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e5e7eb; }
 :host, html { line-height: 1.5; -webkit-text-size-adjust: 100%; -moz-tab-size: 4; tab-size: 4; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
 body { margin: 0; line-height: inherit; }
-h1, h2, p, ul, pre, table, button, input, img { margin: 0; padding: 0; }
-h1, h2 { font-size: inherit; font-weight: inherit; }
+h1, h2, h3, p, ul, pre, table, button, input, img { margin: 0; padding: 0; } /* Added h3 */
+h1, h2, h3 { font-size: inherit; font-weight: inherit; } /* Added h3 */
 ul { list-style: none; }
 img { display: block; vertical-align: middle; max-width: 100%; height: auto; }
 button, input { font-family: inherit; font-size: 100%; line-height: inherit; color: inherit; }
@@ -18,7 +18,7 @@ input::placeholder { color: #9ca3af; opacity: 1; }
 /* Light Mode Base Styles (applied by default) */
 body { background-color: #f3f4f6; color: #1f2937; }
 .container { background-color: #fff; }
-h1, h2 { color: #4b5563; }
+h1, h2, h3 { color: #4b5563; } /* Added h3 */
 input { border-color: #d1d5db; background-color: #fff; color: #111827; }
 input::placeholder { color: #6b7280; }
 button { background-color: #3b82f6; color: #fff; }
@@ -31,35 +31,38 @@ button:hover { background-color: #2563eb; }
 #detailsArea { background-color: #fff; border-color: #d1d5db; color: #111827; }
 #detailsArea table { border-color: #d1d5db; }
 #detailsArea th, #detailsArea td { border-color: #d1d5db; }
-#detailsArea thead { background-color: #f3f4f6; } /* thead specific bg */
-#detailsArea th { color: #1f2937; } /* th specific text */
+#detailsArea thead { background-color: #f3f4f6; }
+#detailsArea th { color: #1f2937; }
+#detailsArea tr { background-color: #fff; } /* Default row bg */
 #detailsArea tr.even\:bg-white:nth-child(even) { background-color: #fff; }
 #detailsArea tr.odd\:bg-gray-50:nth-child(odd) { background-color: #f9fafb; }
-.source-url { color: #6b7280; }
+.source-url a { color: #2563eb; } /* Link color */
+.source-url a:hover { text-decoration: underline; }
 img.border { border-color: #e5e7eb; }
 img.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 
 /* Dark Mode Styles (applied when .dark class is present) */
-.dark body { background-color: #1f2937; color: #d1d5db; }
-.dark .container { background-color: #1f2937; }
-.dark h1, .dark h2 { color: #d1d5db; }
+.dark body { background-color: #111827; color: #d1d5db; } /* Darker body */
+.dark .container { background-color: #1f2937; } /* Dark container */
+.dark h1, .dark h2, .dark h3 { color: #d1d5db; } /* Added h3 */
 .dark input { border-color: #4b5563; background-color: #374151; color: #f9fafb; }
 .dark input::placeholder { color: #9ca3af; }
 .dark button { background-color: #2563eb; }
 .dark button:hover { background-color: #1d4ed8; }
 .dark #statusBar { background-color: #374151; color: #d1d5db; }
-.dark .results-container, .dark .details-container { border-color: #4b5563; background-color: #1f2937; }
+.dark .results-container, .dark .details-container { border-color: #4b5563; background-color: #1f2937; } /* Dark container */
 .dark #resultsList { border-color: #4b5563; background-color: #374151; }
 .dark #resultsList li { border-color: #4b5563; color: #f9fafb; }
 .dark #resultsList li:hover { background-color: #4b5563; }
 .dark #detailsArea { background-color: #374151; border-color: #4b5563; color: #f9fafb; }
 .dark #detailsArea table { border-color: #4b5563; }
 .dark #detailsArea th, .dark #detailsArea td { border-color: #4b5563; }
-.dark #detailsArea thead { background-color: #4b5563; } /* thead specific dark bg */
-.dark #detailsArea th { color: #f3f4f6; } /* th specific dark text */
+.dark #detailsArea thead { background-color: #4b5563; }
+.dark #detailsArea th { color: #f3f4f6; }
+.dark #detailsArea tr { background-color: #374151; } /* Dark row bg */
 .dark #detailsArea tr.even\:bg-white:nth-child(even) { background-color: #374151; }
 .dark #detailsArea tr.odd\:bg-gray-50:nth-child(odd) { background-color: #4b5563; }
-.dark .source-url { color: #9ca3af; }
+.dark .source-url a { color: #60a5fa; } /* Lighter blue for dark */
 .dark img.border { border-color: #4b5563; }
 .dark img.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2); }
 
@@ -103,6 +106,7 @@ img.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 .max-h-48 { max-height: 12rem; }
 .overflow-y-auto { overflow-y: auto; }
 .mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; } /* Added */
 .p-3 { padding: 0.75rem; }
 .min-h-\[100px\] { min-height: 100px; }
 .overflow-x-auto { overflow-x: auto; }
@@ -125,6 +129,30 @@ img.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 .gap-2 { gap: 0.5rem; }
 .p-1 { padding: 0.25rem; }
 .inline-block { display: inline-block; }
+.cursor-pointer { cursor: pointer; }
+.hover\:opacity-80:hover { opacity: 0.8; }
+.transition-opacity { transition-property: opacity; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+.text-md { font-size: 1rem; line-height: 1.5rem; } /* Added */
+.first\:mt-0:first-child { margin-top: 0; } /* Added */
+.hover\:underline:hover { text-decoration-line: underline; } /* Added */
+
+/* Modal Styles */
+.fixed { position: fixed; }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.bg-black { background-color: #000; }
+.bg-opacity-75 { background-color: rgba(0, 0, 0, 0.75); }
+.z-50 { z-index: 50; }
+.hidden { display: none; }
+.relative { position: relative; }
+.absolute { position: absolute; }
+.top-2 { top: 0.5rem; }
+.right-2 { right: 0.5rem; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; } /* Re-defined, ok */
+.hover\:text-black:hover { color: #000; }
+.dark .hover\:text-white:hover { color: #fff; }
+.max-w-3xl { max-width: 48rem; } /* Re-defined, ok */
+.max-h-\[80vh\] { max-height: 80vh; }
+.max-h-\[70vh\] { max-height: 70vh; }
 
 /* Add hover effect for list items manually */
 #resultsList li { padding: 0.5rem; border-bottom-width: 1px; cursor: pointer; }

@@ -6,6 +6,9 @@ const searchButton = document.getElementById('searchButton');
 const statusBar = document.getElementById('statusBar');
 const resultsList = document.getElementById('resultsList');
 const detailsArea = document.getElementById('detailsArea');
+const imageModal = document.getElementById('imageModal');
+const modalImage = document.getElementById('modalImage');
+const closeModalButton = document.getElementById('closeModalButton');
 
 // const API_BASE_URL = 'http://localhost:5000'; // No longer needed
 
@@ -21,6 +24,19 @@ searchInput.addEventListener('keypress', (event) => {
 
 // Use event delegation for clicks on results list items
 resultsList.addEventListener('click', handleResultClick);
+
+// Event listener for closing the modal
+closeModalButton.addEventListener('click', () => {
+    imageModal.classList.add('hidden');
+    modalImage.src = ''; // Clear image src
+});
+// Also close modal if clicking the background overlay
+imageModal.addEventListener('click', (event) => {
+    if (event.target === imageModal) { // Check if click was directly on the overlay
+        imageModal.classList.add('hidden');
+        modalImage.src = '';
+    }
+});
 
 // --- Handler Functions ---
 
@@ -110,103 +126,118 @@ function displayResults(results) {
     });
 }
 
-function displayDetails(details) {
+function displayDetails(sections) { // Expecting an array of sections now
     detailsArea.innerHTML = ''; // Clear previous content
 
-    if (!details) {
-        detailsArea.textContent = 'Error: Received no details data.';
+    if (!Array.isArray(sections) || sections.length === 0) {
+        detailsArea.textContent = 'Error: Received no details data or invalid format.';
         return;
     }
 
-    // Check the type of data received from the API
-    if (details.type === 'table' && details.headers && details.rows) {
-        // Render as HTML table
-        const table = document.createElement('table');
-        // Add Tailwind classes for basic table styling
-        table.className = "w-full border-collapse border border-gray-300 text-xs"; // Full width, borders, small text
-        const thead = document.createElement('thead');
-        const tbody = document.createElement('tbody'); // Create tbody first
+    let sourceUrl = null; // Keep track of the source URL
 
-        // --- Create Image Row (if images exist) ---
-        if (details.imageUrls && details.imageUrls.length > 0 && details.imageUrls.some(url => url !== null)) {
-             const imageRow = document.createElement('tr');
-             imageRow.className = "bg-white dark:bg-gray-700"; // Match background
+    sections.forEach(section => {
+        // Add Section Title
+        if (section.title && section.title !== "Worth Details") { // Avoid redundant default title
+            const titleEl = document.createElement('h3');
+            // Added margin-top, skip first title's top margin
+            titleEl.className = "text-md font-semibold mt-4 mb-2 dark:text-gray-300 first:mt-0";
+            titleEl.textContent = section.title;
+            detailsArea.appendChild(titleEl);
+        }
 
-             // Add empty cell if headers are shorter or align images with headers
-             const imageCellsToAdd = details.headers.length > 0 ? details.headers.length : details.imageUrls.length;
+        // Render Table Section
+        if (section.type === 'table' && section.headers && section.rows) {
+            const table = document.createElement('table');
+            table.className = "w-full border-collapse border border-gray-300 dark:border-gray-600 text-xs mb-2"; // Added mb-2
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
 
-             for (let i = 0; i < imageCellsToAdd; i++) {
-                 const td = document.createElement('td');
-                 td.className = "p-1 border border-gray-300 dark:border-gray-600 text-center align-middle"; // Padding, border, centering
-
-                 const imageUrl = details.imageUrls[i]; // Get corresponding image URL (might be undefined/null)
-                 if (imageUrl) {
-                     const img = document.createElement('img');
-                     img.src = imageUrl;
-                     img.alt = "Item Variant";
-                     // Smaller image size, centered within the cell
-                     img.className = "inline-block max-h-16 object-contain"; // Adjust max-h-XX as needed
-                     td.appendChild(img);
-                 } else {
-                     td.innerHTML = '&nbsp;'; // Add space for empty cells
+            // --- Create Image Row ---
+            if (section.imageUrls && section.imageUrls.length > 0 && section.imageUrls.some(url => url !== null)) {
+                 const imageRow = document.createElement('tr');
+                 imageRow.className = "bg-white dark:bg-gray-700";
+                 const imageCellsToAdd = section.headers.length > 0 ? section.headers.length : section.imageUrls.length;
+                 for (let i = 0; i < imageCellsToAdd; i++) {
+                     const td = document.createElement('td');
+                     td.className = "p-1 border border-gray-300 dark:border-gray-600 text-center align-middle";
+                     const imageUrl = section.imageUrls[i];
+                     if (imageUrl) {
+                         const img = document.createElement('img');
+                         img.src = imageUrl;
+                         img.alt = section.headers[i] || "Item Variant"; // Use header as alt text if available
+                         img.className = "inline-block max-h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"; // Added hover effect
+                         img.addEventListener('click', () => {
+                             modalImage.src = imageUrl; // Set modal image source
+                             imageModal.classList.remove('hidden'); // Show modal
+                         });
+                         td.appendChild(img);
+                     } else {
+                         td.innerHTML = '&nbsp;'; // Keep empty cell for alignment
+                     }
+                     imageRow.appendChild(td);
                  }
-                 imageRow.appendChild(td);
-             }
-             tbody.appendChild(imageRow); // Add image row to the top of tbody
+                 tbody.appendChild(imageRow);
+            }
+
+            // --- Create Header Row ---
+            if (section.headers.length > 0) {
+                thead.className = "bg-gray-100 dark:bg-gray-600"; // Dark mode header bg
+                const headerRow = document.createElement('tr');
+                section.headers.forEach(headerText => {
+                    const th = document.createElement('th');
+                    th.textContent = headerText;
+                    th.className = "border border-gray-300 dark:border-gray-600 p-2 text-left font-semibold";
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+            }
+
+            // --- Create Data Rows ---
+            section.rows.forEach(rowData => {
+                const dataRow = document.createElement('tr');
+                dataRow.className = "even:bg-white odd:bg-gray-50 dark:even:bg-gray-700 dark:odd:bg-gray-600";
+                rowData.forEach(cellText => {
+                    const td = document.createElement('td');
+                    td.textContent = cellText;
+                    td.className = "border border-gray-300 dark:border-gray-600 p-2 align-top";
+                    dataRow.appendChild(td);
+                });
+                tbody.appendChild(dataRow);
+            });
+            table.appendChild(tbody);
+            detailsArea.appendChild(table);
+
+        // Render Text Section
+        } else if (section.type === 'text' && section.content) {
+            const pre = document.createElement('pre');
+            pre.className = "whitespace-pre-wrap break-words text-sm"; // Added text-sm
+            pre.textContent = section.content;
+            detailsArea.appendChild(pre);
         }
 
-
-        // Create header row
-        if (details.headers.length > 0) {
-            // const thead = document.createElement('thead'); // REMOVED duplicate declaration
-            thead.className = "bg-gray-100"; // Header background
-            const headerRow = document.createElement('tr');
-            details.headers.forEach(headerText => {
-                const th = document.createElement('th');
-                th.textContent = headerText;
-                th.className = "border border-gray-300 p-2 text-left font-semibold"; // Borders, padding, alignment
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead); // Append thead to table
+        // Keep track of the source URL from the last section processed
+        if (section.source_url) {
+            sourceUrl = section.source_url;
         }
+    }); // End loop through sections
 
-        // Create data rows (these go *after* the potential image row in tbody)
-        details.rows.forEach(rowData => {
-            const dataRow = document.createElement('tr');
-            // Apply dark mode striping directly here
-            dataRow.className = "even:bg-white odd:bg-gray-50 dark:even:bg-gray-700 dark:odd:bg-gray-600";
-            rowData.forEach(cellText => {
-                const td = document.createElement('td');
-                td.textContent = cellText;
-                td.className = "border border-gray-300 p-2 align-top"; // Borders, padding, vertical alignment
-                dataRow.appendChild(td);
-            });
-            tbody.appendChild(dataRow);
-        });
-        table.appendChild(tbody); // Append tbody to table
-        detailsArea.appendChild(table);
-
-    } else if (details.type === 'text' && details.content) {
-        // Render as plain text (preserve formatting)
-        const pre = document.createElement('pre');
-        pre.className = "whitespace-pre-wrap break-words"; // Ensure text wraps
-        pre.textContent = details.content;
-        detailsArea.appendChild(pre);
-    } else if (details.worth) { // Fallback for old format just in case
-         const pre = document.createElement('pre');
-         pre.textContent = details.worth;
-         detailsArea.appendChild(pre);
-    }
-     else {
-        detailsArea.textContent = 'Could not display details in a known format.';
-    }
-
-    // Add the source URL at the end
-    if (details.source_url) {
+    // Add the source URL hyperlink at the very end
+    if (sourceUrl) {
         const sourceP = document.createElement('p');
-        sourceP.className = 'source-url'; // Add class for styling
-        sourceP.textContent = `Source: ${details.source_url}`;
+        sourceP.className = 'source-url mt-4'; // Added margin-top
+        const sourceLink = document.createElement('a');
+        sourceLink.href = '#'; // Prevent default link behavior
+        sourceLink.textContent = sourceUrl;
+        sourceLink.className = "text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"; // Added cursor-pointer
+        // sourceLink.target = "_blank"; // No longer needed
+        sourceLink.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent navigating to '#'
+            window.ipcApi.openExternalLink(sourceUrl); // Use exposed API
+        });
+        sourceP.textContent = `Source: `;
+        sourceP.appendChild(sourceLink);
         detailsArea.appendChild(sourceP);
     }
 }

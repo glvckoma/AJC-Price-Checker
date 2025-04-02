@@ -16,8 +16,16 @@ contextBridge.exposeInMainWorld(
       // Optionally throw an error or return a rejected promise for disallowed channels
       console.error(`IPC channel '${channel}' is not allowed.`);
       return Promise.reject(new Error(`IPC channel '${channel}' is not allowed.`));
+    },
+    // Expose a function to safely open external links
+    openExternalLink: (url) => {
+      // Basic validation for URL format (optional but recommended)
+      if (typeof url === 'string' && (url.startsWith('http:') || url.startsWith('https:'))) {
+        ipcRenderer.send('open-external-link', url); // Use send for one-way trigger
+      } else {
+        console.error(`Invalid URL attempted to open: ${url}`);
+      }
     }
-    // We can expose other specific IPC functions here if needed (e.g., ipcRenderer.on)
   }
 );
 
