@@ -18,9 +18,9 @@
 *   Main process performs searches using Node.js scraping logic.
 *   Search results are returned via IPC and displayed in the list.
 *   Clicking a result sends a request to the main process via IPC.
-*   Main process fetches and parses details/images using Node.js scraping logic.
-*   Worth details (table or text) and item images are returned via IPC and displayed correctly, including alignment.
-*   Application can be packaged into a portable `.exe` using `npm run build` (run as admin).
+*   Main process fetches and parses details/images using Node.js scraping logic, **including handling of multiple sections/tables**.
+*   Worth details (table or text) and item images are returned via IPC and displayed correctly, including alignment. **Images are clickable and open in a modal. Source URL is displayed as a clickable link.**
+*   Application can be packaged into a portable `.exe` using `npm run build` (run as admin). **Icon configuration updated to use `build/icon.ico` via `electron-builder.json`.**
 
 ## What's Left to Build (High-Level)
 
@@ -32,4 +32,4 @@
 
 *   **Web Scraping Brittleness:** Still reliant on the wiki's HTML structure. Changes to the wiki may break the application.
 *   **Parsing Limitations:** May not correctly parse worth/images from all page layouts on the wiki.
-*   **Build Environment:** The inability to reliably run build tools via npm scripts necessitates manual CSS generation, making styling updates cumbersome. Build requires administrator privileges on Windows.
+*   **Build Environment:** The inability to reliably run build tools via npm scripts necessitates manual CSS generation, making styling updates cumbersome. Build requires administrator privileges and potentially Developer Mode enabled on Windows. Icon display in File Explorer may require clearing the Windows icon cache.

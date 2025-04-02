@@ -262,9 +262,8 @@ async function handleGetPageDetails(event, pageUrl) {
     const htmlContent = await fetchPageContent(pageUrl);
     const details = extractWorthDetails(htmlContent);
     const sections = extractWorthDetails(htmlContent);
-    // Add source URL to the response object (maybe just once?)
-    // We'll handle adding it in the renderer instead based on the last section.
-    return sections; // Send array of section objects back to renderer
+    // Return an object containing both sections and the source URL
+    return { sections: sections, source_url: pageUrl };
   } catch (error) {
     console.error(`IPC Error during details fetch for "${pageUrl}":`, error);
     throw new Error(error.message || "Failed to get page details.");

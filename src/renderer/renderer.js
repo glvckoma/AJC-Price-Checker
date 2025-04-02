@@ -10,8 +10,6 @@ const imageModal = document.getElementById('imageModal');
 const modalImage = document.getElementById('modalImage');
 const closeModalButton = document.getElementById('closeModalButton');
 
-// const API_BASE_URL = 'http://localhost:5000'; // No longer needed
-
 // --- Event Listeners ---
 
 searchButton.addEventListener('click', handleSearch);
@@ -82,9 +80,13 @@ async function handleResultClick(event) {
 
     try {
          // Use IPC invoke to call the main process handler
-        const details = await window.ipcApi.invoke('get-page-details', pageUrl);
-        displayDetails(details);
-        updateStatus('Details loaded.');
+        const response = await window.ipcApi.invoke('get-page-details', pageUrl); // Get the whole response object
+        if (response && response.sections) {
+            displayDetails(response.sections, response.source_url); // Pass sections and source_url separately
+            updateStatus('Details loaded.');
+        } else {
+             throw new Error("Invalid data structure received from main process.");
+        }
 
     } catch (error) {
         // Errors from invoke (including rejections from main process) land here
@@ -126,7 +128,8 @@ function displayResults(results) {
     });
 }
 
-function displayDetails(sections) { // Expecting an array of sections now
+// Updated function signature to accept sourceUrl
+function displayDetails(sections, sourceUrl) {
     detailsArea.innerHTML = ''; // Clear previous content
 
     if (!Array.isArray(sections) || sections.length === 0) {
@@ -134,7 +137,7 @@ function displayDetails(sections) { // Expecting an array of sections now
         return;
     }
 
-    let sourceUrl = null; // Keep track of the source URL
+    // No longer need to track sourceUrl within the loop
 
     sections.forEach(section => {
         // Add Section Title
@@ -217,13 +220,13 @@ function displayDetails(sections) { // Expecting an array of sections now
             detailsArea.appendChild(pre);
         }
 
-        // Keep track of the source URL from the last section processed
-        if (section.source_url) {
-            sourceUrl = section.source_url;
-        }
+        // No longer need to track source_url here
+        // if (section.source_url) {
+        //     sourceUrl = section.source_url;
+        // }
     }); // End loop through sections
 
-    // Add the source URL hyperlink at the very end
+    // Add the source URL hyperlink at the very end (using the passed argument)
     if (sourceUrl) {
         const sourceP = document.createElement('p');
         sourceP.className = 'source-url mt-4'; // Added margin-top
@@ -236,8 +239,8 @@ function displayDetails(sections) { // Expecting an array of sections now
             event.preventDefault(); // Prevent navigating to '#'
             window.ipcApi.openExternalLink(sourceUrl); // Use exposed API
         });
-        sourceP.appendChild(document.createTextNode('Source: ')); // Add the text node first
-        sourceP.appendChild(sourceLink); // Then append the link
+        sourceP.appendChild(document.createTextNode('Source: ')); // Add the text node
+        sourceP.appendChild(sourceLink); // Append the link after the text
         detailsArea.appendChild(sourceP);
     }
 }

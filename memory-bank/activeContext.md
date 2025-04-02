@@ -2,9 +2,9 @@
 
 ## Current Focus
 
-The application has been successfully refactored to use an integrated Node.js backend. Current focus is on documentation and final checks.
+Finalizing documentation and preparing for potential further enhancements after implementing key fixes.
 
-## Recent Changes
+## Recent Changes (Post-Refactor)
 
 *   **Backend Rewrite:** Completed porting Python scraping logic to Node.js (`axios`, `cheerio`) within the Electron main process (`src/main.js`).
 *   **IPC Implementation:** Replaced HTTP API calls with Electron's IPC mechanism (`ipcMain`, `ipcRenderer`, `contextBridge`) for communication between main and renderer processes.
@@ -12,12 +12,17 @@ The application has been successfully refactored to use an integrated Node.js ba
 *   **Build Configuration:** Updated `electron-builder` settings in `package.json` to target a `portable` Windows executable.
 *   **Git:** Initialized local repository, connected to GitHub remote (`https://github.com/glvckoma/AJC-Price-Checker`), committed refactoring changes, and pushed to remote.
 *   **Documentation:** Created `README.md`.
+*   **Multi-Section Handling:** Updated backend (`main.js`) and frontend (`renderer.js`) to parse and display multiple tables/sections from wiki pages (e.g., "Other Variants").
+*   **Image Modal:** Implemented clickable images in tables that open a larger view in a modal.
+*   **Source Link:** Fixed display of source URL link (including "Source: " text) and implemented opening via IPC/shell.
+*   **Icon Fixes:** Attempted various fixes for `.exe` icon display, eventually aligning config with 'Jam' project and using `electron-builder.json`. Build requires admin privileges and Developer Mode enabled on Windows. Icon cache clearing may be needed for File Explorer to update.
 
 ## Next Steps
 
-1.  **Update Memory Bank:** Complete the update of `activeContext.md` (this file) and `progress.md`. Review other Memory Bank files (`projectbrief.md`, `productContext.md`, `techContext.md`, `systemPatterns.md`) for any final adjustments.
-2.  **Commit Documentation:** Stage and commit the `README.md` and updated Memory Bank files. Push to GitHub.
-3.  **Final Build & Test:** Perform a final build (`npm run build` as admin) to generate the portable `.exe` and test it.
+1.  **Update Memory Bank:** Complete the update of `activeContext.md` (this file) and `progress.md`. Review other core files.
+2.  **Commit Fixes & Docs:** Stage and commit the latest code fixes and Memory Bank updates. Push to GitHub.
+3.  **Further Enhancements (Optional):** Consider implementing suggestions like loading indicators, clear button, result highlighting, etc.
+4.  **Final Build & Test:** Perform a final build (`npm run build` as admin) and test the portable `.exe`.
 
 ## Development Nuances & Run Commands
 
