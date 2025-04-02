@@ -28,7 +28,8 @@
     "files": [
       "src/**/*",
       "node_modules/**/*",
-      "package.json"
+      "package.json",
+      "assets/**/*"
     ],
     "directories": {
       "output": "dist"
