@@ -28,15 +28,14 @@
     "files": [
       "src/**/*",
       "node_modules/**/*",
-      "package.json",
-      "assets/**/*"
+      "package.json"
     ],
     "directories": {
       "output": "dist"
     },
     "win": {
       "target": "portable",
-      "icon": "build/icon.ico"
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
