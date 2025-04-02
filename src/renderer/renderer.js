@@ -236,7 +236,7 @@ function displayDetails(sections) { // Expecting an array of sections now
             event.preventDefault(); // Prevent navigating to '#'
             window.ipcApi.openExternalLink(sourceUrl); // Use exposed API
         });
-        sourceP.textContent = `Source: `;
+        sourceP.appendChild(document.createTextNode('Source: ')); // Add text node before link
         sourceP.appendChild(sourceLink);
         detailsArea.appendChild(sourceP);
     }

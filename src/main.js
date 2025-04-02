@@ -87,15 +87,26 @@ function extractWorthDetails(htmlContent) {
 
         console.log(`Found section header: ${sectionTitle}`);
 
-        // Find the first relevant table immediately following this header
-        // .next() finds the immediate sibling, .find() looks within descendants
-        // We might need a more robust way to find the *correct* table associated with the header
-        // Let's try finding tables between this h2 and the next h2 or end of contentArea
-        const sectionContent = $(h2Element).nextUntil('h2'); // Get all siblings until the next h2
-        const worthTable = sectionContent.find('table.wikitable, table.article-table').first();
+        // Find the next relevant table *after* this h2 but *before* the next h2
+        let worthTable = null;
+        let currentNode = $(h2Element).next(); // Start with the element right after h2
+        while (currentNode.length > 0 && !currentNode.is('h2')) {
+            // Check if the current node *is* the table or *contains* the table
+            if (currentNode.is('table.wikitable, table.article-table')) {
+                worthTable = currentNode;
+                break;
+            }
+            const foundTable = currentNode.find('table.wikitable, table.article-table').first();
+            if (foundTable.length > 0) {
+                worthTable = foundTable;
+                break;
+            }
+            currentNode = currentNode.next(); // Move to the next sibling
+        }
 
-        if (worthTable.length > 0) {
-            console.log(`Processing table under section: ${sectionTitle}`);
+
+        if (worthTable && worthTable.length > 0) {
+             console.log(`Processing table under section: ${sectionTitle}`);
             const rows = worthTable.find('tr');
             let headers = [];
             let tableRowsData = [];
