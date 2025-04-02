@@ -205,7 +205,7 @@ function createWindow () {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    icon: path.join(__dirname, '../assets/icon.ico'), // Use .ico path
+    icon: path.join(__dirname, '../build/icon.ico'), // Point to build directory
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       // Consider setting contextIsolation: true (default) and nodeIntegration: false for security
